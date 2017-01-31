@@ -63,7 +63,7 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-#这时django默认的数据库，使用的是sqlite3，把上面的注释掉，并添加：
+#这是django默认的数据库，使用的是sqlite3，把上面的注释掉，并添加：
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -78,7 +78,7 @@ DATABASES = {
 ```
 * 重启服务``python manage.py runserver``,如果不报错说明成功使用MySQL
 
-# 相数据添加数据
+# 向数据库添加数据
 * 在应用下的models.py中导入models``from django.db import models``
 * 新建一个类，这个类对应数据库当中的一张表，类属性就是表中的字段，如下：
 ```python
@@ -142,4 +142,53 @@ __str__(self)   #python3
 __unicode_(self)   #python2.7
 #在方法当中返回
 #return self.title
+```
+
+# 实现a标签href的跳转，向后端提交文章ID
+* 打开根url配置文件，也就是项目的总ur配置文件按，在include函数中写入第二个参数；名称空间。
+webapp
+  |——urls:项目url配置文件
+
+```python
+urlpatterns = [
+    .....
+    url(r'blog/', include('blog.urls',namespace='blog')),#添加命名空间
+    .....
+]
+```
+* 在应用目录下的url配置文件中，url函数写入第三个形参，代表这是前端要传过来的变量。也就是在总url配置文件中include进来的配置文件
+webapp
+  |——blog
+      |——url
+
+```python
+urlpatterns = [
+    ....
+    url(r'^article/(?P<article_id>[0-9]+)$', views.article_page,name='article_page'),#article_page就是前端要传过来的
+    ....
+]
+```
+
+* 现在在前端html页面添加href属性值，也就是应用所对应的html模板
+```html
+
+{% for list in articles %}
+<a href="{% url 'blog:article_page' list.id %}">{{list.title}}</a>
+<br>
+{% endfor %}
+
+```
+* 刷新页面，审查代码，查看是否正确解释为连接
+
+* 向后端提交多个值
+
+# 向数据库写入数据
+>向数据库写入数据一般使用create函数,使用示例：
+
+```python
+#获取前端传过来的title和content，get函数的第二个参数如果title为空，则取TITLE为默认值
+  title = request.POST.get('title',"TITLE")
+  content = request.POST.get('content',"CONTENT")
+  # 向数据库写入title和content
+  models.Article.objects.create(title=title,content=content)
 ```
